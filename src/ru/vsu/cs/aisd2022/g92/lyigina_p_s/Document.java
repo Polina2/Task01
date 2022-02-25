@@ -19,11 +19,27 @@ public class Document {
         this.paragraphs = paragraphs;
     }
 
+    public void addParagraph() {
+        paragraphs.add(new Paragraph());
+    }
+
+    public void deleteParagraph(int index) {
+        paragraphs.remove(index);
+    }
+
     public ArrayList<Style> getStyles() {
         return styles;
     }
 
     public void setStyles(ArrayList<Style> styles) {
         this.styles = styles;
+    }
+
+    public void addStyle() {
+        styles.add(new Style());
+    }
+
+    public void deleteStyle(int index) {
+        styles.remove(index);
     }
 }

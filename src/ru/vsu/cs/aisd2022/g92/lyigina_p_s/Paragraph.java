@@ -16,13 +16,13 @@ public class Paragraph extends Style {
 
     public void setStyle(Style style) {
         this.style = style;
-        this.leftIndent = style.leftIndent;
-        this.rightIndent = style.rightIndent;
-        this.upIndent = style.upIndent;
-        this.downIndent = style.downIndent;
-        this.redLine = style.redLine;
-        this.alignment = style.alignment;
-        this.listAttribute = style.listAttribute;
+        this.setLeftIndent(style.getLeftIndent());
+        this.setRightIndent(style.getRightIndent());
+        this.setUpIndent(style.getUpIndent());
+        this.setDownIndent(style.getDownIndent());
+        this.setRedLine(style.getRedLine());
+        this.setAlignment(style.getAlignment());
+        this.setListAttribute(style.getListAttribute());
     }
 
     public String getName() {
@@ -41,31 +41,93 @@ public class Paragraph extends Style {
         this.contents = contents;
     }
 
-    public void setLeftIndent(int indent) {
-        this.leftIndent = indent;
+    public String forPrinting(int width) {
+        StringBuilder res = new StringBuilder();
+        res.append("\n".repeat(Math.max(0, this.getUpIndent())));
+        String[] strings = new String[1];
+        if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_WITHOUT_LIST)
+            strings[0] = contents;
+        else
+            strings = contents.split("\n");
+        for (int strInd = 0; strInd < strings.length; strInd++) {
+            String[] words = strings[strInd].split(" ");
+            int index = 0;
+            int start = 0;
+            boolean wasRedLineOrListChar = false;
+            while (index < words.length) {
+                int w = width - this.getLeftIndent() - this.getRightIndent();
+
+                if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_NUMBERED)
+                    w -= 3;
+                else if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_MARKED)
+                    w -= 2;
+                else if (!wasRedLineOrListChar) {
+                    res.append(" ".repeat(Math.max(0, this.getRedLine())));
+                    w -= this.getRedLine();
+                    wasRedLineOrListChar = true;
+                }
+
+                while (index < words.length && words[index].length() <= w) {
+                    w -= words[index].length()+1;
+                    index++;
+                }
+
+                res.append(" ".repeat(Math.max(0, this.getLeftIndent())));
+                if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_NUMBERED && !wasRedLineOrListChar) {
+                    res.append(strInd + this.getNumberFrom()).append(". ");
+                    wasRedLineOrListChar = true;
+                } else if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_MARKED && !wasRedLineOrListChar) {
+                    res.append(this.getMarker()).append(" ");
+                    wasRedLineOrListChar = true;
+                }
+
+                switch (this.getAlignment()) {
+                    case ALIGNMENT_LEFT -> res.append(leftAlignment(words, start, index, w));
+                    case ALIGNMENT_RIGHT -> res.append(rightAlignment(words, start, index, w));
+                    case ALIGNMENT_CENTER -> res.append(centerAlignment(words, start, index, w));
+                    case ALIGNMENT_WIDTH -> res.append(widthAlignment(words, start, index, w));
+                }
+
+                res.append(" ".repeat(Math.max(0, this.getRightIndent()))).append("\n");
+                start = index;
+            }
+        }
+        res.append("\n".repeat(Math.max(0, this.getDownIndent())));
+        return res.toString();
     }
 
-    public void setRightIndent(int indent) {
-        this.rightIndent = indent;
+    private static String leftAlignment(String[] words, int start, int end, int spaces) {
+        StringBuilder res = new StringBuilder();
+        for (int i = start; i < end; i++) {
+            res.append(words[i]);
+            if (i < end - 1)
+                res.append(" ");
+        }
+        res.append(" ".repeat(spaces));//spaces >= 0
+        return res.toString();
     }
 
-    public void setUpIndent(int indent) {
-        this.upIndent = indent;
+    private static String rightAlignment(String[] words, int start, int end, int spaces) {
+        StringBuilder res = new StringBuilder();
+        res.append(" ".repeat(spaces));//spaces >= 0
+        for (int i = start; i < end; i++) {
+            res.append(words[i]);
+            if (i < end - 1)
+                res.append(" ");
+        }
+        return res.toString();
     }
 
-    public void setDownIndent(int indent) {
-        this.downIndent = indent;
+    private static String centerAlignment(String[] words, int start, int end, int spaces) {
+        StringBuilder res = new StringBuilder();
+
+        return res.toString();
     }
 
-    public void setRedLine(int indent) {
-        this.redLine = indent;
-    }
+    private static String widthAlignment(String[] words, int start, int end, int spaces) {
+        StringBuilder res = new StringBuilder();
+        //wordCount = end - start
 
-    public void setAlignment(Alignment alignment) {
-        this.alignment = alignment;
-    }
-
-    public void setListAttribute(ListAttribute attribute) {
-        this.listAttribute = attribute;
+        return res.toString();
     }
 }

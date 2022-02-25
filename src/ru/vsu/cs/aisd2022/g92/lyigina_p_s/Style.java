@@ -2,15 +2,15 @@ package ru.vsu.cs.aisd2022.g92.lyigina_p_s;
 
 public class Style {
     private String name;
-    protected int leftIndent;
-    protected int rightIndent;
-    protected int upIndent;
-    protected int downIndent;
-    protected int redLine;
-    protected Alignment alignment;
-    protected ListAttribute listAttribute;
-    protected int numberFrom = 0;
-    protected char marker = ' ';
+    private int leftIndent;
+    private int rightIndent;
+    private int upIndent;
+    private int downIndent;
+    private int redLine;
+    private Alignment alignment;
+    private ListAttribute listAttribute;
+    private int numberFrom = 0;
+    private char marker = ' ';
 
     enum Alignment {
         ALIGNMENT_LEFT,
@@ -59,8 +59,77 @@ public class Style {
             this.numberFrom = number;
     }
 
+    protected int getNumberFrom() {
+        return numberFrom;
+    }
+
     public void setMarker(char marker) {
         if (listAttribute == ListAttribute.LIST_ATTRIBUTE_MARKED)
             this.marker = marker;
+    }
+
+    protected char getMarker() {
+        return marker;
+    }
+
+    public void setLeftIndent(int indent) {
+        if (indent >= 0)
+            this.leftIndent = indent;
+    }
+
+    protected int getLeftIndent() {
+        return leftIndent;
+    }
+
+    public void setRightIndent(int indent) {
+        if (indent >= 0)
+            this.rightIndent = indent;
+    }
+
+    protected int getRightIndent() {
+        return rightIndent;
+    }
+
+    public void setUpIndent(int indent) {
+        if (indent >= 0)
+            this.upIndent = indent;
+    }
+
+    protected int getUpIndent() {
+        return upIndent;
+    }
+
+    public void setDownIndent(int indent) {
+        if (indent >= 0)
+            this.downIndent = indent;
+    }
+
+    protected int getDownIndent() {
+        return downIndent;
+    }
+
+    public void setRedLine(int indent) {
+        if (indent >= 0)
+            this.redLine = indent;
+    }
+
+    protected int getRedLine() {
+        return redLine;
+    }
+
+    public void setAlignment(Alignment alignment) {
+        this.alignment = alignment;
+    }
+
+    protected Alignment getAlignment() {
+        return alignment;
+    }
+
+    public void setListAttribute(ListAttribute attribute) {
+        this.listAttribute = attribute;
+    }
+
+    protected ListAttribute getListAttribute() {
+        return listAttribute;
     }
 }
