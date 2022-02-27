@@ -73,12 +73,20 @@ public class Paragraph extends Style {
                 }
 
                 res.append(" ".repeat(Math.max(0, this.getLeftIndent())));
-                if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_NUMBERED && !wasRedLineOrListChar) {
-                    res.append(strInd + this.getNumberFrom()).append(". ");
-                    wasRedLineOrListChar = true;
-                } else if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_MARKED && !wasRedLineOrListChar) {
-                    res.append(this.getMarker()).append(" ");
-                    wasRedLineOrListChar = true;
+                if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_NUMBERED) {
+                    if (!wasRedLineOrListChar) {
+                        res.append(strInd + this.getNumberFrom()).append(". ");
+                        wasRedLineOrListChar = true;
+                    } else {
+                        res.append("   ");
+                    }
+                } else if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_MARKED) {
+                    if (!wasRedLineOrListChar) {
+                        res.append(this.getMarker()).append(" ");
+                        wasRedLineOrListChar = true;
+                    } else {
+                        res.append("  ");
+                    }
                 }
 
                 switch (this.getAlignment()) {
@@ -120,14 +128,26 @@ public class Paragraph extends Style {
 
     private static String centerAlignment(String[] words, int start, int end, int spaces) {
         StringBuilder res = new StringBuilder();
-
+        res.append(" ".repeat(spaces/2));
+        for (int i = start; i < end; i++) {
+            res.append(words[i]);
+            if (i < end - 1)
+                res.append(" ");
+        }
+        res.append(" ".repeat(spaces - spaces/2));
         return res.toString();
     }
 
     private static String widthAlignment(String[] words, int start, int end, int spaces) {
         StringBuilder res = new StringBuilder();
-        //wordCount = end - start
-
+        int wordCount = end - start;
+        int gap = spaces/(wordCount-1);
+        int remainder = spaces%(wordCount-1);
+        for (int i = start; i < end; i++) {
+            res.append(words[i]);
+            if (i < end - 1)
+                res.append(" ".repeat((remainder-- > 0)?(gap + 1):gap));
+        }
         return res.toString();
     }
 }
