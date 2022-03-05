@@ -10,7 +10,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
+import java.util.Objects;
 
 public class FrameMain extends JFrame {
     private JPanel panelMain;
@@ -35,7 +38,19 @@ public class FrameMain extends JFrame {
     private JButton buttonDelete;
     private JPanel panelStyleButtons;
     private JButton buttonAddStyle;
+    private JButton buttonDeleteStyle;
+    private JPanel panelAlignment;
+    private JRadioButton radioButtonLeft;
+    private JRadioButton radioButtonRight;
+    private JRadioButton radioButtonCenter;
+    private JRadioButton radioButtonWidth;
+    private JPanel panelListAttribute;
+    private JRadioButton radioButtonWithoutList;
+    private JRadioButton radioButtonNumbered;
+    private JRadioButton radioButtonMarked;
+    private JButton buttonUpdateParagraph;
     private final JFileChooser fileChooserSave;
+    private int currentParagraph;
 
     public FrameMain() {
         this.setTitle("FrameMain");
@@ -56,6 +71,35 @@ public class FrameMain extends JFrame {
 
         Document document = new Document();
 
+        ButtonGroup bg1 = new ButtonGroup();
+        bg1.add(radioButtonLeft);
+        bg1.add(radioButtonRight);
+        bg1.add(radioButtonCenter);
+        bg1.add(radioButtonWidth);
+
+        ButtonGroup bg2 = new ButtonGroup();
+        bg2.add(radioButtonWithoutList);
+        bg2.add(radioButtonNumbered);
+        bg2.add(radioButtonMarked);
+
+        tableParagraphs.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = tableParagraphs.rowAtPoint(e.getPoint());
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    currentParagraph = row;
+                    Paragraph paragraph = document.getParagraphs().get(row);
+                    textAreaText.setText(paragraph.forPrinting(document.getWidth()));
+                    spinnerLeft.setValue(paragraph.getLeftIndent());
+                    spinnerRight.setValue(paragraph.getRightIndent());
+                    spinnerUp.setValue(paragraph.getUpIndent());
+                    spinnerDown.setValue(paragraph.getDownIndent());
+                    spinnerRedLine.setValue(paragraph.getRedLine());
+                    //other
+                }
+            }
+        });
+
         buttonSave.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -69,6 +113,7 @@ public class FrameMain extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 document.addParagraph();
                 Utils.listToTableP(document.getParagraphs(), tableParagraphs);
+                currentParagraph = document.getParagraphs().size() - 1;
             }
         });
         buttonAddStyle.addActionListener(new ActionListener() {
@@ -76,6 +121,20 @@ public class FrameMain extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 document.addStyle();
                 Utils.listToTableS(document.getStyles(), tableStyles);
+            }
+        });
+        buttonUpdateParagraph.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Paragraph paragraph = document.getParagraphs().get(currentParagraph);
+                paragraph.setName(Objects.requireNonNull(Utils.tableToArray(tableParagraphs))[currentParagraph]);
+                paragraph.setContents(textAreaText.getText());
+                paragraph.setLeftIndent((int) spinnerLeft.getValue());
+                paragraph.setRightIndent((int) spinnerRight.getValue());
+                paragraph.setUpIndent((int) spinnerUp.getValue());
+                paragraph.setDownIndent((int) spinnerDown.getValue());
+                paragraph.setRedLine((int) spinnerRedLine.getValue());
+                //other
             }
         });
     }
@@ -96,7 +155,7 @@ public class FrameMain extends JFrame {
      */
     private void $$$setupUI$$$() {
         panelMain = new JPanel();
-        panelMain.setLayout(new GridLayoutManager(5, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panelMain.setLayout(new GridLayoutManager(5, 4, new Insets(0, 0, 0, 0), -1, -1));
         scrollPaneText = new JScrollPane();
         panelMain.add(scrollPaneText, new GridConstraints(2, 0, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         textAreaText = new JTextArea();
@@ -113,9 +172,6 @@ public class FrameMain extends JFrame {
         panelSettings = new JPanel();
         panelSettings.setLayout(new GridLayoutManager(5, 3, new Insets(0, 0, 0, 0), -1, -1));
         panelMain.add(panelSettings, new GridConstraints(0, 0, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        buttonSave = new JButton();
-        buttonSave.setText("Save");
-        panelSettings.add(buttonSave, new GridConstraints(2, 0, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
         label1.setText("Red line");
         panelSettings.add(label1, new GridConstraints(4, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -141,6 +197,9 @@ public class FrameMain extends JFrame {
         panelSettings.add(spinnerDown, new GridConstraints(3, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         spinnerRedLine = new JSpinner();
         panelSettings.add(spinnerRedLine, new GridConstraints(4, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        buttonSave = new JButton();
+        buttonSave.setText("Save");
+        panelSettings.add(buttonSave, new GridConstraints(0, 0, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         labelS = new JLabel();
         labelS.setText("Styles");
         panelMain.add(labelS, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -150,6 +209,54 @@ public class FrameMain extends JFrame {
         labelT = new JLabel();
         labelT.setText("Text");
         panelMain.add(labelT, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelParagraphButtons = new JPanel();
+        panelParagraphButtons.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+        panelMain.add(panelParagraphButtons, new GridConstraints(2, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        buttonAddParagraph = new JButton();
+        buttonAddParagraph.setText("+");
+        panelParagraphButtons.add(buttonAddParagraph, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        buttonDelete = new JButton();
+        buttonDelete.setText("-");
+        panelParagraphButtons.add(buttonDelete, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        buttonUpdateParagraph = new JButton();
+        buttonUpdateParagraph.setText("Update");
+        panelParagraphButtons.add(buttonUpdateParagraph, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelStyleButtons = new JPanel();
+        panelStyleButtons.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        panelMain.add(panelStyleButtons, new GridConstraints(4, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        buttonAddStyle = new JButton();
+        buttonAddStyle.setText("+");
+        panelStyleButtons.add(buttonAddStyle, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        buttonDeleteStyle = new JButton();
+        buttonDeleteStyle.setText("-");
+        panelStyleButtons.add(buttonDeleteStyle, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelAlignment = new JPanel();
+        panelAlignment.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
+        panelMain.add(panelAlignment, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        radioButtonLeft = new JRadioButton();
+        radioButtonLeft.setText("Left Alignment");
+        panelAlignment.add(radioButtonLeft, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        radioButtonRight = new JRadioButton();
+        radioButtonRight.setText("Right Alignment");
+        panelAlignment.add(radioButtonRight, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        radioButtonCenter = new JRadioButton();
+        radioButtonCenter.setText("Center Alignment");
+        panelAlignment.add(radioButtonCenter, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        radioButtonWidth = new JRadioButton();
+        radioButtonWidth.setText("Width Alignment");
+        panelAlignment.add(radioButtonWidth, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelListAttribute = new JPanel();
+        panelListAttribute.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+        panelMain.add(panelListAttribute, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        radioButtonWithoutList = new JRadioButton();
+        radioButtonWithoutList.setText("Without List");
+        panelListAttribute.add(radioButtonWithoutList, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        radioButtonNumbered = new JRadioButton();
+        radioButtonNumbered.setText("Numbered List");
+        panelListAttribute.add(radioButtonNumbered, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        radioButtonMarked = new JRadioButton();
+        radioButtonMarked.setText("Marked List");
+        panelListAttribute.add(radioButtonMarked, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

@@ -111,13 +111,13 @@ public class Paragraph extends Style {
             if (i < end - 1)
                 res.append(" ");
         }
-        res.append(" ".repeat(spaces));//spaces >= 0
+        res.append(" ".repeat(Math.max(0, spaces)));//spaces >= 0
         return res.toString();
     }
 
     private static String rightAlignment(String[] words, int start, int end, int spaces) {
         StringBuilder res = new StringBuilder();
-        res.append(" ".repeat(spaces));//spaces >= 0
+        res.append(" ".repeat(Math.max(0, spaces)));//spaces >= 0
         for (int i = start; i < end; i++) {
             res.append(words[i]);
             if (i < end - 1)

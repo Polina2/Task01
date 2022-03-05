@@ -24,6 +24,18 @@ public class Utils {
         JTableUtils.writeArrayToJTable(table, array);
     }
 
+    public static String[] tableToArray(JTable table) {
+        String[][] array = JTableUtils.readStringMatrixFromJTable(table);
+        if (array != null) {
+            String[] resArray = new String[array.length];
+            for (int i = 0; i < array.length; i++) {
+                resArray[i] = array[i][0];
+            }
+            return resArray;
+        }
+        return null;
+    }
+
     public static void textToFile(String[] text, String fileName) {
         try {
             PrintWriter out = new PrintWriter(fileName);
