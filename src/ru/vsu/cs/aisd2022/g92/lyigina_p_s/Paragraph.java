@@ -8,6 +8,7 @@ public class Paragraph extends Style {
     public Paragraph() {
         name = "";
         contents = "";
+        style = new Style();
     }
 
     public Style getStyle() {
@@ -44,11 +45,7 @@ public class Paragraph extends Style {
     public String forPrinting(int width) {
         StringBuilder res = new StringBuilder();
         res.append("\n".repeat(Math.max(0, this.getUpIndent())));
-        String[] strings = new String[1];
-        if (this.getListAttribute() == ListAttribute.LIST_ATTRIBUTE_WITHOUT_LIST)
-            strings[0] = contents;
-        else
-            strings = contents.split("\n");
+        String[] strings = contents.split("\n");
         for (int strInd = 0; strInd < strings.length; strInd++) {
             String[] words = strings[strInd].split(" ");
             int index = 0;
@@ -141,7 +138,7 @@ public class Paragraph extends Style {
     private static String widthAlignment(String[] words, int start, int end, int spaces) {
         StringBuilder res = new StringBuilder();
         int wordCount = end - start;
-        int gap = spaces/(wordCount-1);
+        int gap = (wordCount>1)?(spaces/(wordCount-1)):0;
         int remainder = spaces%(wordCount-1);
         for (int i = start; i < end; i++) {
             res.append(words[i]);
