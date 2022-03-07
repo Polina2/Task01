@@ -132,4 +132,9 @@ public class Style {
     protected ListAttribute getListAttribute() {
         return listAttribute;
     }
+
+    @Override
+    public String toString() {
+        return this.getName();
+    }
 }
