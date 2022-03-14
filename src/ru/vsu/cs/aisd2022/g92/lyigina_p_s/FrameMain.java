@@ -5,6 +5,8 @@ import com.intellij.uiDesigner.core.GridLayoutManager;
 import ru.vsu.cs.util.JTableUtils;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
@@ -35,7 +37,7 @@ public class FrameMain extends JFrame {
     private JTable tableStyles;
     private JPanel panelParagraphButtons;
     private JButton buttonAddParagraph;
-    private JButton buttonDelete;
+    private JButton buttonDeleteParagraph;
     private JPanel panelStyleButtons;
     private JButton buttonAddStyle;
     private JButton buttonDeleteStyle;
@@ -53,6 +55,9 @@ public class FrameMain extends JFrame {
     private JTextField textFieldMarker;
     private JComboBox<Style> comboBoxStyles;
     private JButton buttonUpdateStyle;
+    private JSpinner spinnerWidth;
+    private JTextArea textAreaFinal;
+    private JButton buttonShow;
     private final JFileChooser fileChooserSave;
     private int currentParagraph;
     private int currentStyle;
@@ -69,6 +74,17 @@ public class FrameMain extends JFrame {
         return Style.Alignment.ALIGNMENT_LEFT;
     }
 
+    private void setRadioButtonAlignment(Style.Alignment alignment) {
+        if (alignment == Style.Alignment.ALIGNMENT_LEFT)
+            radioButtonLeft.setSelected(true);
+        else if (alignment == Style.Alignment.ALIGNMENT_RIGHT)
+            radioButtonRight.setSelected(true);
+        else if (alignment == Style.Alignment.ALIGNMENT_CENTER)
+            radioButtonCenter.setSelected(true);
+        else if (alignment == Style.Alignment.ALIGNMENT_WIDTH)
+            radioButtonWidth.setSelected(true);
+    }
+
     private Style.ListAttribute getRadioButtonListAttribute() {
         if (radioButtonWithoutList.isSelected())
             return Style.ListAttribute.LIST_ATTRIBUTE_WITHOUT_LIST;
@@ -77,6 +93,15 @@ public class FrameMain extends JFrame {
         if (radioButtonMarked.isSelected())
             return Style.ListAttribute.LIST_ATTRIBUTE_MARKED;
         return Style.ListAttribute.LIST_ATTRIBUTE_WITHOUT_LIST;
+    }
+
+    private void setRadioButtonListAttribute(Style.ListAttribute listAttribute) {
+        if (listAttribute == Style.ListAttribute.LIST_ATTRIBUTE_WITHOUT_LIST)
+            radioButtonWithoutList.setSelected(true);
+        else if (listAttribute == Style.ListAttribute.LIST_ATTRIBUTE_NUMBERED)
+            radioButtonNumbered.setSelected(true);
+        else if (listAttribute == Style.ListAttribute.LIST_ATTRIBUTE_MARKED)
+            radioButtonMarked.setSelected(true);
     }
 
     public FrameMain() {
@@ -109,7 +134,9 @@ public class FrameMain extends JFrame {
         bg2.add(radioButtonNumbered);
         bg2.add(radioButtonMarked);
 
+        comboBoxStyles.addItem(new Style());
         //without style
+        spinnerWidth.setValue(40);
 
         tableParagraphs.addMouseListener(new MouseAdapter() {
             @Override
@@ -118,13 +145,14 @@ public class FrameMain extends JFrame {
                 if (SwingUtilities.isLeftMouseButton(e)) {
                     currentParagraph = row;
                     Paragraph paragraph = document.getParagraphs().get(row);
-                    textAreaText.setText(paragraph.forPrinting(document.getWidth()));
+                    textAreaText.setText(paragraph.getContents());
                     spinnerLeft.setValue(paragraph.getLeftIndent());
                     spinnerRight.setValue(paragraph.getRightIndent());
                     spinnerUp.setValue(paragraph.getUpIndent());
                     spinnerDown.setValue(paragraph.getDownIndent());
                     spinnerRedLine.setValue(paragraph.getRedLine());
-                    //set selected alignment and list attr
+                    setRadioButtonAlignment(paragraph.getAlignment());
+
                     //other
                 }
             }
@@ -161,6 +189,7 @@ public class FrameMain extends JFrame {
                 Paragraph paragraph = document.getParagraphs().get(currentParagraph);
                 paragraph.setName(Objects.requireNonNull(Utils.tableToArray(tableParagraphs))[currentParagraph]);
                 paragraph.setContents(textAreaText.getText());
+                //paragraph.setStyle((Style) Objects.requireNonNull(comboBoxStyles.getSelectedItem()));
                 paragraph.setLeftIndent((int) spinnerLeft.getValue());
                 paragraph.setRightIndent((int) spinnerRight.getValue());
                 paragraph.setUpIndent((int) spinnerUp.getValue());
@@ -170,7 +199,6 @@ public class FrameMain extends JFrame {
                 paragraph.setListAttribute(getRadioButtonListAttribute());
                 paragraph.setNumberFrom(Integer.parseInt(textFieldNumberFrom.getText()));
                 paragraph.setMarker(textFieldMarker.getText().charAt(0));
-                paragraph.setStyle((Style) Objects.requireNonNull(comboBoxStyles.getSelectedItem()));
             }
         });
         buttonUpdateStyle.addActionListener(new ActionListener() {
@@ -187,6 +215,49 @@ public class FrameMain extends JFrame {
                 style.setListAttribute(getRadioButtonListAttribute());
                 style.setNumberFrom(Integer.parseInt(textFieldNumberFrom.getText()));
                 style.setMarker(textFieldMarker.getText().charAt(0));
+            }
+        });
+        buttonDeleteParagraph.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                document.getParagraphs().remove(currentParagraph);
+                Utils.listToTableP(document.getParagraphs(), tableParagraphs);
+            }
+        });
+        buttonDeleteStyle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                document.getStyles().remove(currentStyle);
+                Utils.listToTableS(document.getStyles(), tableStyles);
+            }
+        });
+        spinnerWidth.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                document.setWidth((int) spinnerWidth.getValue());
+            }
+        });
+        buttonShow.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                StringBuilder res = new StringBuilder();
+                for (String p : document.toText()) {
+                    res.append(p).append("\n");
+                }
+                textAreaFinal.setText(res.toString());
+            }
+        });
+        comboBoxStyles.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Paragraph paragraph = document.getParagraphs().get(currentParagraph);
+                paragraph.setStyle((Style) Objects.requireNonNull(comboBoxStyles.getSelectedItem()));
+                spinnerLeft.setValue(paragraph.getLeftIndent());
+                spinnerRight.setValue(paragraph.getRightIndent());
+                spinnerUp.setValue(paragraph.getUpIndent());
+                spinnerDown.setValue(paragraph.getDownIndent());
+                spinnerRedLine.setValue(paragraph.getRedLine());
+                setRadioButtonAlignment(paragraph.getAlignment());
             }
         });
     }
@@ -207,7 +278,7 @@ public class FrameMain extends JFrame {
      */
     private void $$$setupUI$$$() {
         panelMain = new JPanel();
-        panelMain.setLayout(new GridLayoutManager(5, 5, new Insets(0, 0, 0, 0), -1, -1));
+        panelMain.setLayout(new GridLayoutManager(7, 5, new Insets(0, 0, 0, 0), -1, -1));
         scrollPaneText = new JScrollPane();
         panelMain.add(scrollPaneText, new GridConstraints(2, 0, 3, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         textAreaText = new JTextArea();
@@ -243,7 +314,15 @@ public class FrameMain extends JFrame {
         panelSettings.add(spinnerRedLine, new GridConstraints(4, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         buttonSave = new JButton();
         buttonSave.setText("Save");
-        panelSettings.add(buttonSave, new GridConstraints(0, 0, 3, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelSettings.add(buttonSave, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label6 = new JLabel();
+        label6.setText("Width");
+        panelSettings.add(label6, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        spinnerWidth = new JSpinner();
+        panelSettings.add(spinnerWidth, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        buttonShow = new JButton();
+        buttonShow.setText("Show");
+        panelSettings.add(buttonShow, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         labelT = new JLabel();
         labelT.setText("Text");
         panelMain.add(labelT, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -288,9 +367,9 @@ public class FrameMain extends JFrame {
         buttonAddParagraph = new JButton();
         buttonAddParagraph.setText("+");
         panelParagraphButtons.add(buttonAddParagraph, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        buttonDelete = new JButton();
-        buttonDelete.setText("-");
-        panelParagraphButtons.add(buttonDelete, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        buttonDeleteParagraph = new JButton();
+        buttonDeleteParagraph.setText("-");
+        panelParagraphButtons.add(buttonDeleteParagraph, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         buttonUpdateParagraph = new JButton();
         buttonUpdateParagraph.setText("Update");
         panelParagraphButtons.add(buttonUpdateParagraph, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
@@ -322,6 +401,12 @@ public class FrameMain extends JFrame {
         scrollPaneStyles.setViewportView(tableStyles);
         comboBoxStyles = new JComboBox();
         panelMain.add(comboBoxStyles, new GridConstraints(0, 4, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JLabel label7 = new JLabel();
+        label7.setText("Final");
+        panelMain.add(label7, new GridConstraints(5, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        textAreaFinal = new JTextArea();
+        textAreaFinal.setEditable(false);
+        panelMain.add(textAreaFinal, new GridConstraints(6, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, new Dimension(150, 50), null, 0, false));
     }
 
     /**

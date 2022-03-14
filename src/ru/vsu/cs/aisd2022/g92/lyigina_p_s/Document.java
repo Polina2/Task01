@@ -54,8 +54,10 @@ public class Document {
     }
 
     public String[] toText() {
+        //StringBuilder result = new StringBuilder();
         String[] res = new String[paragraphs.size()];
         for (int i = 0; i < paragraphs.size(); i++) {
+            //result.append(getParagraphs().get(i).forPrinting(getWidth()));
             res[i] = paragraphs.get(i).forPrinting(width);
         }
         return res;
