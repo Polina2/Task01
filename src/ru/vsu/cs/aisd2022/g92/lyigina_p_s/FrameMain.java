@@ -58,6 +58,7 @@ public class FrameMain extends JFrame {
     private JSpinner spinnerWidth;
     private JTextArea textAreaFinal;
     private JButton buttonShow;
+    private JRadioButton radioButtonAlignFromStyle;
     private final JFileChooser fileChooserSave;
     private int currentParagraph;
     private int currentStyle;
@@ -128,6 +129,7 @@ public class FrameMain extends JFrame {
         bg1.add(radioButtonRight);
         bg1.add(radioButtonCenter);
         bg1.add(radioButtonWidth);
+        bg1.add(radioButtonAlignFromStyle);
 
         ButtonGroup bg2 = new ButtonGroup();
         bg2.add(radioButtonWithoutList);
@@ -146,13 +148,44 @@ public class FrameMain extends JFrame {
                     currentParagraph = row;
                     Paragraph paragraph = document.getParagraphs().get(row);
                     textAreaText.setText(paragraph.getContents());
+                    //style
                     spinnerLeft.setValue(paragraph.getLeftIndent());
                     spinnerRight.setValue(paragraph.getRightIndent());
                     spinnerUp.setValue(paragraph.getUpIndent());
                     spinnerDown.setValue(paragraph.getDownIndent());
                     spinnerRedLine.setValue(paragraph.getRedLine());
                     setRadioButtonAlignment(paragraph.getAlignment());
+                    setRadioButtonListAttribute(paragraph.getListAttribute());
+                    if (paragraph.getListAttribute() == Style.ListAttribute.LIST_ATTRIBUTE_NUMBERED)
+                        textFieldNumberFrom.setText("" + paragraph.getNumberFrom());
+                    if (paragraph.getListAttribute() == Style.ListAttribute.LIST_ATTRIBUTE_MARKED)
+                        textFieldMarker.setText("" + paragraph.getMarker());
+                    comboBoxStyles.setSelectedItem(paragraph.getStyle());
 
+                    radioButtonAlignFromStyle.setSelected(paragraph.isAlignmentFromStyle());
+                    //other
+                }
+            }
+        });
+
+        tableStyles.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = tableParagraphs.rowAtPoint(e.getPoint());
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    currentStyle = row;
+                    Style style = document.getStyles().get(row);
+                    spinnerLeft.setValue(style.getLeftIndent());
+                    spinnerRight.setValue(style.getRightIndent());
+                    spinnerUp.setValue(style.getUpIndent());
+                    spinnerDown.setValue(style.getDownIndent());
+                    spinnerRedLine.setValue(style.getRedLine());
+                    setRadioButtonAlignment(style.getAlignment());
+                    setRadioButtonListAttribute(style.getListAttribute());
+                    if (style.getListAttribute() == Style.ListAttribute.LIST_ATTRIBUTE_NUMBERED)
+                        textFieldNumberFrom.setText("" + style.getNumberFrom());
+                    if (style.getListAttribute() == Style.ListAttribute.LIST_ATTRIBUTE_MARKED)
+                        textFieldMarker.setText("" + style.getMarker());
                     //other
                 }
             }
@@ -195,7 +228,8 @@ public class FrameMain extends JFrame {
                 paragraph.setUpIndent((int) spinnerUp.getValue());
                 paragraph.setDownIndent((int) spinnerDown.getValue());
                 paragraph.setRedLine((int) spinnerRedLine.getValue());
-                paragraph.setAlignment(getRadioButtonAlignment());
+                if (!paragraph.isAlignmentFromStyle())
+                    paragraph.setAlignment(getRadioButtonAlignment());
                 paragraph.setListAttribute(getRadioButtonListAttribute());
                 paragraph.setNumberFrom(Integer.parseInt(textFieldNumberFrom.getText()));
                 paragraph.setMarker(textFieldMarker.getText().charAt(0));
@@ -215,6 +249,14 @@ public class FrameMain extends JFrame {
                 style.setListAttribute(getRadioButtonListAttribute());
                 style.setNumberFrom(Integer.parseInt(textFieldNumberFrom.getText()));
                 style.setMarker(textFieldMarker.getText().charAt(0));
+
+                for (Paragraph paragraph : document.getParagraphs()) {
+                    if (paragraph.getStyle() == style) {
+                        if (paragraph.isAlignmentFromStyle())
+                            paragraph.setAlignment(style.getAlignment());
+                        //and so on
+                    }
+                }
             }
         });
         buttonDeleteParagraph.addActionListener(new ActionListener() {
@@ -257,7 +299,15 @@ public class FrameMain extends JFrame {
                 spinnerUp.setValue(paragraph.getUpIndent());
                 spinnerDown.setValue(paragraph.getDownIndent());
                 spinnerRedLine.setValue(paragraph.getRedLine());
-                setRadioButtonAlignment(paragraph.getAlignment());
+                //setRadioButtonAlignment(paragraph.getAlignment());
+                radioButtonAlignFromStyle.setSelected(true);
+                paragraph.setAlignmentFromStyle(true);
+
+                setRadioButtonListAttribute(paragraph.getListAttribute());
+                if (paragraph.getListAttribute() == Style.ListAttribute.LIST_ATTRIBUTE_NUMBERED)
+                    textFieldNumberFrom.setText("" + paragraph.getNumberFrom());
+                if (paragraph.getListAttribute() == Style.ListAttribute.LIST_ATTRIBUTE_MARKED)
+                    textFieldMarker.setText("" + paragraph.getMarker());
             }
         });
     }
@@ -327,21 +377,24 @@ public class FrameMain extends JFrame {
         labelT.setText("Text");
         panelMain.add(labelT, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         panelAlignment = new JPanel();
-        panelAlignment.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
+        panelAlignment.setLayout(new GridLayoutManager(5, 1, new Insets(0, 0, 0, 0), -1, -1));
         panelMain.add(panelAlignment, new GridConstraints(0, 2, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         radioButtonLeft = new JRadioButton();
         radioButtonLeft.setSelected(true);
         radioButtonLeft.setText("Left Alignment");
-        panelAlignment.add(radioButtonLeft, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelAlignment.add(radioButtonLeft, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         radioButtonRight = new JRadioButton();
         radioButtonRight.setText("Right Alignment");
-        panelAlignment.add(radioButtonRight, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelAlignment.add(radioButtonRight, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         radioButtonCenter = new JRadioButton();
         radioButtonCenter.setText("Center Alignment");
-        panelAlignment.add(radioButtonCenter, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelAlignment.add(radioButtonCenter, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         radioButtonWidth = new JRadioButton();
         radioButtonWidth.setText("Width Alignment");
-        panelAlignment.add(radioButtonWidth, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        panelAlignment.add(radioButtonWidth, new GridConstraints(4, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        radioButtonAlignFromStyle = new JRadioButton();
+        radioButtonAlignFromStyle.setText("From Style");
+        panelAlignment.add(radioButtonAlignFromStyle, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         panelListAttribute = new JPanel();
         panelListAttribute.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
         panelMain.add(panelListAttribute, new GridConstraints(0, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));

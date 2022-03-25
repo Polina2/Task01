@@ -5,6 +5,8 @@ public class Paragraph extends Style {
     private String contents;
     private Style style;
 
+    private boolean isAlignmentFromStyle = false;
+
     public Paragraph() {
         name = "";
         contents = "";
@@ -146,5 +148,13 @@ public class Paragraph extends Style {
                 res.append(" ".repeat((remainder-- > 0)?(gap + 1):gap));
         }
         return res.toString();
+    }
+
+    public boolean isAlignmentFromStyle() {
+        return isAlignmentFromStyle;
+    }
+
+    public void setAlignmentFromStyle(boolean alignmentFromStyle) {
+        isAlignmentFromStyle = alignmentFromStyle;
     }
 }
