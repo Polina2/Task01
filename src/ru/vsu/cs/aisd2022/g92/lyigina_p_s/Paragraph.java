@@ -6,6 +6,12 @@ public class Paragraph extends Style {
     private Style style;
 
     private boolean isAlignmentFromStyle = false;
+    private boolean isListAttributeFromStyle = false;
+    private boolean isLeftIndentFromStyle = false;
+    private boolean isRightIndentFromStyle = false;
+    private boolean isUpIndentFromStyle = false;
+    private boolean isDownIndentFromStyle = false;
+    private boolean isRedLineFromStyle = false;
 
     public Paragraph() {
         name = "";
@@ -156,5 +162,53 @@ public class Paragraph extends Style {
 
     public void setAlignmentFromStyle(boolean alignmentFromStyle) {
         isAlignmentFromStyle = alignmentFromStyle;
+    }
+
+    public boolean isListAttributeFromStyle() {
+        return isListAttributeFromStyle;
+    }
+
+    public void setListAttributeFromStyle(boolean listAttributeFromStyle) {
+        isListAttributeFromStyle = listAttributeFromStyle;
+    }
+
+    public boolean isLeftIndentFromStyle() {
+        return isLeftIndentFromStyle;
+    }
+
+    public void setLeftIndentFromStyle(boolean leftIndentFromStyle) {
+        isLeftIndentFromStyle = leftIndentFromStyle;
+    }
+
+    public boolean isRightIndentFromStyle() {
+        return isRightIndentFromStyle;
+    }
+
+    public void setRightIndentFromStyle(boolean rightIndentFromStyle) {
+        isRightIndentFromStyle = rightIndentFromStyle;
+    }
+
+    public boolean isUpIndentFromStyle() {
+        return isUpIndentFromStyle;
+    }
+
+    public void setUpIndentFromStyle(boolean upIndentFromStyle) {
+        isUpIndentFromStyle = upIndentFromStyle;
+    }
+
+    public boolean isDownIndentFromStyle() {
+        return isDownIndentFromStyle;
+    }
+
+    public void setDownIndentFromStyle(boolean downIndentFromStyle) {
+        isDownIndentFromStyle = downIndentFromStyle;
+    }
+
+    public boolean isRedLineFromStyle() {
+        return isRedLineFromStyle;
+    }
+
+    public void setRedLineFromStyle(boolean redLineFromStyle) {
+        isRedLineFromStyle = redLineFromStyle;
     }
 }
